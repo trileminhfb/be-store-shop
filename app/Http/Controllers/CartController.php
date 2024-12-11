@@ -60,16 +60,16 @@ class CartController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function updateData(Request $request)
+    public function updateData(Request $request, $id)
     {
-        $cart = Cart::find($request->id);
+        $cart = Cart::find($id);
 
         if (!$cart) {
             return response()->json([
                 'message' => 'Không tìm thấy giỏ hàng',
             ], Response::HTTP_BAD_REQUEST);
         }
-        $cart->quantity += $request->quantity;
+        $cart->quantity = $request->quantity;
         $cart->save();
 
         return response()->json([
