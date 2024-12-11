@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
@@ -48,7 +49,7 @@ class UserController extends Controller
         $user = User::create([
             'account' => $request->account,
             'password' => bcrypt($request->password),
-            'id_role' => $request->id_role,
+            'id_role' => 2,
             'fullName' => $request->fullName,
             'address' => $request->address,
             'birth' => $request->birth,
@@ -119,34 +120,63 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
-        $user = User::where('account', $request->account)->first();
+        try {
+            //code...
 
-        if ($user && auth()->attempt(['account' => $request->account, 'password' => $request->password])) {
-            $token = auth()->user()->createToken(
-                'authToken',
-                ['*'],
-                now()->addDays(7)
-            )->plainTextToken;
+            $user = User::where('account', $request->account)->first();
+
+            if ($user && auth()->attempt(['account' => $request->account, 'password' => $request->password])) {
+                $token = auth()->user()->createToken(
+                    'authToken',
+                    ['*'],
+                    now()->addDays(7)
+                )->plainTextToken;
+
+                return response()->json([
+                    'message' => 'oke',
+                    'token' => $token,
+                    'access_token' => $token,
+                    'type_token' => 'Bearer',
+                    'data' => auth()->user()
+                ], Response::HTTP_OK);
+            }
 
             return response()->json([
-                'message' => 'oke',
-                'token' => $token,
-                'access_token' => $token,
-                'type_token' => 'Bearer',
-                'data' => auth()->user()
-            ], Response::HTTP_OK);
+                'message' => 'Sai thông tin',
+            ], Response::HTTP_BAD_REQUEST);
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+
+            return response()->json([
+                'message' => $th->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        return response()->json([
-            'message' => 'ko ',
-
-        ], Response::HTTP_UNAUTHORIZED);
     }
 
-    public function abc(Request $request)
+    public function logout(Request $request)
     {
-        return response()->json([
-            'user' => $request->user(),
-        ], Response::HTTP_OK);
+        try {
+            //code...
+
+            $user = $request->user();
+
+            if ($user) {
+                $user->currentAccessToken()->delete();
+
+                return response()->json([
+                    'message' => 'oke',
+                ], Response::HTTP_OK);
+            }
+
+            return response()->json([
+                'message' => 'm chưa đăng nhập',
+            ], Response::HTTP_OK);
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+
+            return response()->json([
+                'message' => $th->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

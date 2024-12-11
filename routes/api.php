@@ -1,13 +1,12 @@
-
 <?php
 
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\TotalCartController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WarehouseController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,11 +20,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('/login', [UserController::class, 'login']);
+Route::post('/login', [UserController::class, 'login'])->name('login');
 Route::post('/register', [UserController::class, 'createData']);
 Route::get('/authorization', [UserController::class, 'authorization']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/logout', [UserController::class, 'logout']);
+    Route::post('/payment', [PaymentController::class, 'payment']);
+
     Route::group(['prefix' => 'warehouse'], function () {
         Route::get('/', [WarehouseController::class, 'getData']);
         Route::post('/', [WarehouseController::class, 'createData']);
@@ -35,12 +37,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::group(['prefix' => 'product'], function () {
         Route::get('/', [ProductController::class, 'getData']);
+        Route::get('/gender/{gender}', [ProductController::class, 'getDataForGender']);
         Route::get('/{id}', [ProductController::class, 'getDataProduct']);
         Route::post('/', [ProductController::class, 'createData']);
+        Route::post('/search', [ProductController::class, 'search']);
         Route::put('/', [ProductController::class, 'updateData']);
         Route::delete('/{id}', [ProductController::class, 'deleteData']);
     });
-
 
     Route::group(['prefix' => 'role'], function () {
         Route::get('/', [RoleController::class, 'getData']);
@@ -54,16 +57,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::group(['prefix' => 'cart'], function () {
         Route::get('/', [CartController::class, 'getData']);
         Route::post('/', [CartController::class, 'createData']);
-        Route::put('/', [CartController::class, 'updateData']);
+        Route::put('/{id}', [CartController::class, 'updateData']);
         Route::delete('/{id}', [CartController::class, 'deleteData']);
         Route::delete('/user/{id_user}', [CartController::class, 'deleteAllFromTable']);
     });
 
-    Route::group(['prefix' => 'totalCart'], function () {
-        Route::get('/', [TotalCartController::class, 'getData']);
-        Route::post('/', [TotalCartController::class, 'createData']);
-        Route::put('/', [TotalCartController::class, 'updateData']);
-        Route::delete('/{id}', [TotalCartController::class, 'deleteData']);
+    Route::group(['prefix' => 'invoice'], function () {
+        Route::post('/', [InvoiceController::class, 'createData']);
+        Route::put('/{id}', [InvoiceController::class, 'update']);
     });
 
     Route::group(['prefix' => 'user'], function () {

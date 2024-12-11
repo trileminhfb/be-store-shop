@@ -29,6 +29,23 @@ class ProductController extends Controller
         ], Response::HTTP_OK);
     }
 
+    public function getDataForGender($gender)
+    {
+        $data = Product::where('gender', $gender)->get();
+
+        if ($data->isEmpty()) {
+            return response()->json([
+                'message' => 'Không có sản phẩm nào trong hệ thống.',
+                'data' => [],
+            ], Response::HTTP_OK);
+        }
+
+        return response()->json([
+            'message' => 'Lấy data sản phẩm thành công',
+            'data' => $data,
+        ], Response::HTTP_OK);
+    }
+
     public function getDataProduct($id)
     {
         $data = Product::find($id);
@@ -116,5 +133,15 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'Sản phẩm không tồn tại',
         ], Response::HTTP_BAD_REQUEST);
+    }
+
+    public function search(Request $request)
+    {
+        $data = Product::where('name', 'like', '%' . $request->keyword . '%')->get();
+
+        return response()->json([
+            'message' => 'Lấy data sản phẩm thành công',
+            'data' => $data,
+        ], Response::HTTP_OK);
     }
 }
