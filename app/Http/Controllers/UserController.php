@@ -144,8 +144,6 @@ class UserController extends Controller
     public function login(Request $request)
     {
         try {
-            //code...
-
             $user = User::where('account', $request->account)->first();
 
             if ($user && auth()->attempt(['account' => $request->account, 'password' => $request->password])) {
