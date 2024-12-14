@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\Image;
+use App\Http\Controllers\ImageController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
@@ -24,6 +26,8 @@ Route::post('/login', [UserController::class, 'login'])->name('login');
 Route::post('/register', [UserController::class, 'createData']);
 Route::get('/authorization', [UserController::class, 'authorization']);
 
+Route::post('/upload-image', [ImageController::class, 'uploadImage']); //upload image
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/logout', [UserController::class, 'logout']);
     Route::post('/payment', [PaymentController::class, 'payment']);
@@ -41,7 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [ProductController::class, 'getDataProduct']);
         Route::post('/', [ProductController::class, 'createData']);
         Route::post('/search', [ProductController::class, 'search']);
-        Route::put('/', [ProductController::class, 'updateData']);
+        Route::put('/{id}', [ProductController::class, 'updateStatus']);
+        Route::post('/update', [ProductController::class, 'updateData']);
         Route::delete('/{id}', [ProductController::class, 'deleteData']);
     });
 
@@ -63,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::group(['prefix' => 'invoice'], function () {
+        Route::get('/', [InvoiceController::class, 'getData']);
         Route::post('/', [InvoiceController::class, 'createData']);
         Route::put('/{id}', [InvoiceController::class, 'update']);
     });
@@ -70,7 +76,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::group(['prefix' => 'user'], function () {
         Route::get('/', [UserController::class, 'getData']);
         Route::get('/{id}', [UserController::class, 'getDataAccout']);
-        Route::put('/', [UserController::class, 'updateData']);
+        Route::put('/{id}', [UserController::class, 'updateData']);
         Route::delete('/{id}', [UserController::class, 'deleteData']);
     });
+
+    Route::get('/statistic', [UserController::class, 'statistic']);
+
 });

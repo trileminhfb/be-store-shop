@@ -28,7 +28,7 @@ class CartController extends Controller
 
     public function createData(Request $request)
     {
-        $check = Cart::where('id_user', $request->id_user)
+        $check = Cart::where('id_user', $request->user()->id)
             ->where('id_product', $request->id_product)
             ->first();
 
@@ -50,7 +50,7 @@ class CartController extends Controller
         }
 
         $cart = Cart::create([
-            'id_user' => $request->id_user,
+            'id_user' => $request->user()->id,
             'id_product' => $request->id_product,
             'quantity' => $request->quantity,
         ]);
