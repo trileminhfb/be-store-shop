@@ -2,20 +2,43 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\invoice\StatusInvoice;
+use App\Models\Invoice;
+use App\Models\ItemInvoice;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
-    public function getData()
+    public function getData(Request $request)
     {
-        $data = User::with(['role'])->get();
-
         return response()->json([
             'message' => 'Lấy data người dùng thành công',
-            'data' => $data,
+            'data' => User::with(['role'])->find($request->user()->id),
+        ], Response::HTTP_OK);
+    }
+
+    public function statistic(Request $request)
+    {
+        $invoice = Invoice::where('created_at', '>=', Carbon::now()->subDays(30))
+            ->where('status', StatusInvoice::DONE)
+            ->get();
+
+        $totalProduct = 0;
+        $totalPrice = 0;
+        $item = ItemInvoice::with('product')->whereIn('id_invoice', $invoice->pluck('id'))->get();
+        foreach ($item as $key => $value) {
+            $totalProduct += $value->quantity;
+            $totalPrice += $value->product->price * $value->quantity;
+        }
+
+        return response()->json([
+            'totalInvoice' => $invoice->count(),
+            'totalProduct' => $totalProduct,
+            'totalPrice' => $totalPrice,
         ], Response::HTTP_OK);
     }
 
@@ -63,9 +86,9 @@ class UserController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function updateData(Request $request)
+    public function updateData(Request $request, $id)
     {
-        $user = User::find($request->id);
+        $user = User::find($id);
 
         if (!$user) {
             return response()->json([

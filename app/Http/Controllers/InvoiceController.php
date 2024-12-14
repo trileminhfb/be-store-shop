@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\InvoiceResource;
 use App\Models\Cart;
 use App\Models\Invoice;
 use App\Models\ItemInvoice;
@@ -19,6 +20,22 @@ class InvoiceController extends Controller
     public function __construct(PaymentController $paymentController)
     {
         $this->paymentController = $paymentController;
+    }
+
+    public function getData(Request $request)
+    {
+        $data = Invoice::with(['items.product'])->where('id_user', $request->user()->id)->orderBy('created_at', 'desc')->get();
+
+        if ($data->isEmpty()) {
+            return response()->json([
+                'message' => 'Hóa đơn không tồn tại',
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Lấy dữ liệu hóa đơn',
+            'data' => InvoiceResource::collection($data),
+        ]);
     }
 
     public function createData(Request $request)
@@ -49,6 +66,7 @@ class InvoiceController extends Controller
                 ItemInvoice::create([
                     'id_product' => $value['id_product'],
                     'id_invoice' => $invoice->id,
+                    'quantity' => $value['quantity'],
                 ]);
             }
 
@@ -75,6 +93,17 @@ class InvoiceController extends Controller
     public function update(Request $request, $id)
     {
         $invoice = Invoice::find($id);
+
+        $items = ItemInvoice::with('product')
+            ->where('id_invoice', $id)
+            ->get();
+
+        foreach ($items as $key => $value) {
+            $product = Product::find($value->product->id);
+
+            $product->quantity -= $value->quantity;
+            $product->save();
+        }
 
         if (!$invoice) {
             return response()->json([
